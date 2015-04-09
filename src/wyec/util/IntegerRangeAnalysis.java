@@ -57,12 +57,8 @@ public class IntegerRangeAnalysis {
 	}
 
 	public void apply(WyilFile.FunctionOrMethod td) {
-		apply(td.cases().get(0), td);
-	}
-
-	public void apply(WyilFile.Case c, WyilFile.FunctionOrMethod td) {
 		Type.FunctionOrMethod fmt = td.type();
-		int nVars = Math.max(td.type().params().size(), c.body().numSlots());
+		int nVars = Math.max(td.type().params().size(), td.body().numSlots());
 		RangeFrame frame = new RangeFrame(this, nVars);
 
 		// First, go though and initialise every parameter with its base range.
@@ -75,7 +71,7 @@ public class IntegerRangeAnalysis {
 
 		// Second, go through and apply every precondition to constrain the
 		// parameters before entry into the function/method's body.
-		for (AttributedCodeBlock block : c.precondition()) {
+		for (AttributedCodeBlock block : td.precondition()) {
 			Map<String, CodeBlock.Index> labels = CodeUtils
 					.buildLabelMap(block);
 			frame = transfer(frame, block);
@@ -90,7 +86,7 @@ public class IntegerRangeAnalysis {
 		// Fourth run through the function/method's body to populate the
 		// variable ranges map with ranges for each variable at each program
 		// point.
-		transfer(start, c.body(), frames, CodeUtils.buildLabelMap(c.body()));
+		transfer(start, td.body(), frames, CodeUtils.buildLabelMap(td.body()));
 		
 		// Finally, we can store the frames map with the function or method.
 		// FIXME: c.body().attributes().add((Attribute.Map) frames);
@@ -286,10 +282,6 @@ public class IntegerRangeAnalysis {
 			transfer(index, (Codes.Return) bytecode, frame, frames);
 		} else if (bytecode instanceof Codes.SetOperator) {
 			transfer(index, (Codes.SetOperator) bytecode, frame, frames);
-		} else if (bytecode instanceof Codes.StringOperator) {
-			transfer(index, (Codes.StringOperator) bytecode, frame, frames);
-		} else if (bytecode instanceof Codes.SubString) {
-			transfer(index, (Codes.SubString) bytecode, frame, frames);
 		} else if (bytecode instanceof Codes.Nop) {
 			transfer(index, (Codes.Nop) bytecode, frame, frames);
 		} else if (bytecode instanceof Codes.NewObject) {
@@ -462,18 +454,6 @@ public class IntegerRangeAnalysis {
 	}
 
 	public void transfer(CodeBlock.Index index, Codes.SetOperator code,
-			RangeFrame frame, VariableRangesMap frames) {
-		frame.havoc(code.target());
-		joinInto(index.next(), frame, frames);
-	}
-
-	public void transfer(CodeBlock.Index index, Codes.StringOperator code,
-			RangeFrame frame, VariableRangesMap frames) {
-		frame.havoc(code.target());
-		joinInto(index.next(), frame, frames);
-	}
-
-	public void transfer(CodeBlock.Index index, Codes.SubString code,
 			RangeFrame frame, VariableRangesMap frames) {
 		frame.havoc(code.target());
 		joinInto(index.next(), frame, frames);
