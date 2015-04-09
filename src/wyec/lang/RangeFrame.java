@@ -29,6 +29,10 @@ public class RangeFrame implements Attribute {
 		this.ranges = Arrays.copyOf(ranges, ranges.length);
 	}
 
+	public int size() {
+		return ranges.length;
+	}
+	
 	public void write(int var, IntegerRange range) {
 		ranges[var] = range;
 	}
@@ -70,13 +74,13 @@ public class RangeFrame implements Attribute {
 	}
 	
 	public String toString() {
-		String r = "";
+		String r = "[";
 		for(int i=0;i!=ranges.length;++i) {
 			if(i != 0) {
 				r += ", ";
 			}
 			r += ranges[i];
 		}
-		return r;
+		return r + "]";
 	}
 }

@@ -17,5 +17,4 @@ public class VariableRangesMap extends AbstractAttributeMap<RangeFrame> implemen
 	public Class<? extends Attribute> type() {
 		return RangeFrame.class;
 	}
-
 }

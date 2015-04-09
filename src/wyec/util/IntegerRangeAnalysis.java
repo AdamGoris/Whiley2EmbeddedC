@@ -58,7 +58,7 @@ public class IntegerRangeAnalysis {
 
 	public void apply(WyilFile.FunctionOrMethod td) {
 		Type.FunctionOrMethod fmt = td.type();
-		int nVars = Math.max(td.type().params().size(), td.body().numSlots());
+		int nVars = Math.max(td.type().params().size(), td.body().numSlots());		
 		RangeFrame frame = new RangeFrame(this, nVars);
 
 		// First, go though and initialise every parameter with its base range.
@@ -71,12 +71,12 @@ public class IntegerRangeAnalysis {
 
 		// Second, go through and apply every precondition to constrain the
 		// parameters before entry into the function/method's body.
-		for (AttributedCodeBlock block : td.precondition()) {
-			Map<String, CodeBlock.Index> labels = CodeUtils
-					.buildLabelMap(block);
-			frame = transfer(frame, block);
+		for (AttributedCodeBlock block : td.precondition()) {						
+			frame = transfer(frame, block);			
 		}
 
+		System.out.println("INITIAL FRAME: " + frame);
+		
 		// Third, construct the variable ranges attribute map and the labels
 		// map.
 		VariableRangesMap frames = new VariableRangesMap();
@@ -88,23 +88,29 @@ public class IntegerRangeAnalysis {
 		// point.
 		transfer(start, td.body(), frames, CodeUtils.buildLabelMap(td.body()));
 		
+		System.out.println("RANGES MAP: " + frames);
+		
 		// Finally, we can store the frames map with the function or method.
-		// FIXME: c.body().attributes().add((Attribute.Map) frames);
+		td.attributes().add((Attribute.Map) frames);
 	}
 
 	public RangeFrame transfer(RangeFrame frame, AttributedCodeBlock block) {
+		// Create a locally sized ranges map. This is necessary because the
+		// number of slots required for the enclosing frame may be smaller than
+		// that for this frame. For example, the frame for the body is not
+		// necessarily the same size as that for a precondition.
+		RangeFrame localFrame = new RangeFrame(this,Math.max(frame.size(),block.numSlots()));
+		for(int i=0;i!=frame.size();++i) {
+			localFrame.write(i, frame.read(i));
+		}
 		// Construct the variable ranges map
 		VariableRangesMap frames = new VariableRangesMap();
-		CodeBlock.Index start = new CodeBlock.Index(null, 0);
-		frames.put(start, frame);
+		CodeBlock.Index start = new CodeBlock.Index(null, 0);		
+		frames.put(start, localFrame);
 		// Build the label map...
 		Map<String, CodeBlock.Index> labels = CodeUtils.buildLabelMap(block);
 		// Now, perform the analysis
 		transfer(start, block, frames, labels);
-		// At this point we find all the return statements and join them
-		// together to generate the final frame which will pass out of the
-		// block.
-		RangeFrame result = null;
 		
 		// FIXME: the following is a hack which exploits the fact that I only
 		// ever call this function with a precondition, and I happen to know
@@ -125,6 +131,8 @@ public class IntegerRangeAnalysis {
 			transfer(index, block.get(i), frames, labels);
 			index = index.next();
 		}
+		
+		System.out.println("DONE");
 	}
 
 	public void transfer(CodeBlock.Index index, Code bytecode,
@@ -311,6 +319,7 @@ public class IntegerRangeAnalysis {
 
 	public void transfer(CodeBlock.Index index, Codes.Const code,
 			RangeFrame frame, VariableRangesMap frames) {
+		System.out.println("WRITING: " + code.target());
 		frame.write(code.target(), convert(code.constant));
 		joinInto(index.next(), frame, frames);
 	}
