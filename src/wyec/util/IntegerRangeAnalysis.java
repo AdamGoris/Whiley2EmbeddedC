@@ -52,7 +52,7 @@ public class IntegerRangeAnalysis {
 			// Now, perform the analysis
 			transfer(start, invariant, frames, labels);
 			// Store the computed attributes for other passes to use.			
-			// FIXME: invariant.attributes().add((Attribute.Map) frames);
+			invariant.attributes().add((Attribute.Map) frames);
 		}
 	}
 

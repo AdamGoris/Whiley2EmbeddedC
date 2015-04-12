@@ -47,6 +47,17 @@ public class IntegerRange implements Range {
 	}
 	
 	/**
+	 * Construct an integer range from a finite lower and upper bound.
+	 * 
+	 * @param lowerBound
+	 * @param upperBound
+	 */
+	public IntegerRange(long lowerBound, long upperBound) {
+		this.lowerBound = BigInteger.valueOf(lowerBound);
+		this.upperBound = BigInteger.valueOf(upperBound);
+	}
+	
+	/**
 	 * Represents the top element in the lattice of integer ranges. This is the
 	 * range which contains all possible integer values.
 	 */
@@ -57,6 +68,18 @@ public class IntegerRange implements Range {
 	 * range which contains all possible integer values.
 	 */
 	public static final IntegerRange BOTTOM = new IntegerRange(BigInteger.ONE,BigInteger.ZERO);
+
+	// =============================================
+	// Accessors
+	// =============================================
+
+	public BigInteger lowerBound() {
+		return lowerBound;
+	}
+	
+	public BigInteger upperBound() {
+		return upperBound;
+	}
 	
 	// =============================================
 	// Arithmetic Operators
@@ -153,6 +176,18 @@ public class IntegerRange implements Range {
 	// Helper methods
 	// =============================================
 
+	/**
+	 * Check whether this range completely contains another range.
+	 * 
+	 * @param r
+	 * @return
+	 */
+	public boolean contains(IntegerRange ir) {
+		int l = lowerBound.compareTo(ir.lowerBound);
+		int r = upperBound.compareTo(ir.upperBound);
+		return l <= 0 && r >= 0;
+	}
+	
 	public String toString() {
 		String lb = lowerBound == null ? "-inf" : lowerBound.toString();
 		String ub = upperBound == null ? "+inf" : upperBound.toString();
