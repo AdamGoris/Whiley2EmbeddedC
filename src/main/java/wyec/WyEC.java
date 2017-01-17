@@ -3,6 +3,7 @@ package wyec;
 import java.io.IOException;
 
 import wyc.lang.WhileyFile;
+import wyec.io.EmbeddedCFilePrinter;
 import wyfs.lang.Content;
 import wyfs.lang.Content.Type;
 import wyfs.lang.Path;
@@ -43,7 +44,7 @@ public class WyEC {
 			Path.Entry<WyilFile> srcFile = root.create(Trie.ROOT.append(args[0]), WyilFile.ContentType);
 			WyilFileReader r = new WyilFileReader(srcFile);
 			WyilFile wyilFile = r.read();
-			System.out.println("READ: " + wyilFile.getEntry().id());
+			new EmbeddedCFilePrinter(System.out).apply(wyilFile);
 		} catch(IOException e) {
 			System.out.println(e.getMessage());
 		}
